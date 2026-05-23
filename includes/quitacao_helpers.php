@@ -16,7 +16,7 @@ if (!function_exists('obterDividasCliente')) {
     function obterDividasCliente($cliente_id) {
         global $conn;
         try {
-            $stmt = $conn->prepare('SELECT p.*, ct.numero_contrato, cc.tipo AS tipo_cobranca, cc.descricao AS descricao_cobranca FROM pagamentos p LEFT JOIN contratos ct ON ct.id = p.contrato_id LEFT JOIN contrato_cobrancas cc ON cc.id = p.contrato_cobranca_id WHERE p.cliente_id = ? AND p.status IN ("pendente", "atrasado") ORDER BY p.data_vencimento ASC, p.id ASC');
+            $stmt = $conn->prepare('SELECT p.*, ct.numero_contrato FROM pagamentos p LEFT JOIN contratos ct ON ct.id = p.contrato_id WHERE p.cliente_id = ? AND p.status IN ("pendente", "atrasado") ORDER BY p.data_vencimento ASC, p.id ASC');
             $stmt->execute([$cliente_id]);
             return $stmt->fetchAll();
         } catch (Exception $e) {
@@ -26,17 +26,21 @@ if (!function_exists('obterDividasCliente')) {
 }
 
 if (!function_exists('quitarPagamentos')) {
-    function quitarPagamentos($ids, $metodo = 'caixa', $observacoes = '') {
+    function quitarPagamentos($ids, $metodo = 'caixa', $observacoes = '', $valor_pago = null) {
         global $conn;
         if (empty($ids) || !is_array($ids)) {
             return ['success' => false, 'message' => 'IDs inválidos'];
+        }
+        $observacoesCompleta = trim((string)$observacoes);
+        if ($valor_pago !== null && $valor_pago !== '') {
+            $observacoesCompleta = trim($observacoesCompleta . ' | Valor recebido: R$ ' . number_format((float)$valor_pago, 2, ',', '.'));
         }
         try {
             $conn->beginTransaction();
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $sql = 'UPDATE pagamentos SET status = "pago", data_pagamento = CURDATE(), metodo_pagamento = ?, observacoes = CONCAT(COALESCE(observacoes, ""), CASE WHEN observacoes IS NULL OR observacoes = "" THEN "" ELSE " | " END, ?) WHERE id IN (' . $placeholders . ')';
             $stmt = $conn->prepare($sql);
-            $params = array_merge([$metodo, $observacoes], array_map('intval', $ids));
+            $params = array_merge([$metodo, $observacoesCompleta], array_map('intval', $ids));
             $ok = $stmt->execute($params);
             if (!$ok) {
                 $conn->rollBack();

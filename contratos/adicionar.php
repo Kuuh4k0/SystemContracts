@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cobrancas = $_POST['cobrancas'] ?? null;
     $tipos = is_array($cobrancas) ? ($cobrancas['tipo'] ?? []) : [];
     $valores = is_array($cobrancas) ? ($cobrancas['valor'] ?? []) : [];
+    $produto_ids = is_array($cobrancas) ? ($cobrancas['produto_id'] ?? []) : [];
     $descrs = is_array($cobrancas) ? ($cobrancas['descricao'] ?? []) : [];
 
     if ((!is_numeric($valor_total) || (float)$valor_total <= 0) && !empty($valores)) {
@@ -73,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 for ($i=0; $i < count($tipos); $i++) {
                     $tipo = $tipos[$i] ?? 'servico';
                     $valor = isset($valores[$i]) ? floatval(str_replace(',', '.', $valores[$i])) : 0.0;
+                    $prodId = !empty($produto_ids[$i]) ? $produto_ids[$i] : null;
                     $descrCob = $descrs[$i] ?? '';
                     // Determine due date
                     $due = clone $now;
@@ -97,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     // Insert into pagamentos
-                    $pstmt = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, tipo, descricao, valor, data_vencimento, status) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                    $pstmt->execute([$cliente_id, $contrato_id, $tipo_pag, $descrCob, $valor, $dueDate, 'pendente']);
+                    $pstmt = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, produto_id, tipo, descricao, valor, data_vencimento, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+                    $pstmt->execute([$cliente_id, $contrato_id, $prodId, $tipo_pag, $descrCob, $valor, $dueDate, 'pendente']);
                 }
             }
             if ($isAjax) {

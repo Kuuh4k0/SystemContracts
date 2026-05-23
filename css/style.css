@@ -205,6 +205,415 @@ body {
     transform: scale(1.1);
 }
 
+/* ===================== QUITAÇÃO / PDV ===================== */
+.quitacao-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Make PDV card use viewport height and keep page from scrolling on desktop only.
+   Mobile keeps natural flow to avoid layout breakage. */
+@media (min-width: 1024px) {
+    .quitacao-pdv-card {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 200px);
+        overflow: hidden;
+    }
+    .quitacao-pdv-card > .row {
+        flex: 1 1 auto;
+        min-height: 0; /* allow children to shrink and enable internal scrolling */
+    }
+    .quitacao-sidebar {
+        min-height: 0;
+        height: 100%;
+    }
+    .quitacao-main {
+        height: 100%;
+    }
+    .quitacao-clientes-list {
+        max-height: calc(100vh - 360px);
+        overflow: auto;
+    }
+    .quitacao-sidebar, .quitacao-main {
+        overflow: auto;
+        max-height: 100%;
+    }
+}
+
+
+.quitacao-hero-kicker {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.quitacao-pdv-card {
+    overflow: hidden;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    background: #fff;
+}
+
+.quitacao-sidebar {
+    background: var(--surface);
+    color: var(--text);
+    border-right: 1px solid var(--border) !important;
+}
+
+.quitacao-sidebar-header {
+    padding: 20px 18px;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+}
+
+.quitacao-clientes-list {
+    padding: 12px;
+    overflow: auto;
+}
+
+.quitacao-clientes-list .quitacao-cliente {
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    transition: all 0.18s ease;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.quitacao-clientes-list .quitacao-cliente:hover,
+.quitacao-clientes-list .quitacao-cliente.active {
+    background: linear-gradient(90deg, rgba(11,114,185,0.06), rgba(31,111,139,0.04));
+    border-color: rgba(11,114,185,0.12);
+    box-shadow: 0 8px 18px rgba(16,35,42,0.06);
+    transform: translateX(3px);
+    color: var(--text);
+}
+
+.quitacao-clientes-list .quitacao-cliente.active {
+    border-left: 4px solid rgba(11,114,185,0.12);
+}
+
+.quitacao-clientes-list .quitacao-cliente .quitacao-cliente-name {
+    color: var(--text);
+    font-weight: 700;
+}
+
+.quitacao-main {
+    background: #ffffff;
+}
+
+.pdv-header {
+    padding: 30px;
+    background: #ffffff;
+    border-bottom: 2px solid #f8fafc;
+}
+
+.pdv-body {
+    padding: 20px 30px;
+}
+
+.pdv-footer {
+    padding: 25px 30px;
+    background: #fff;
+    border-top: 2px solid #f8fafc;
+}
+
+.total-banner {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+}
+
+.quitacao-summary-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.quitacao-summary-card {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.quitacao-summary-card:hover {
+    background: #fff;
+    border-color: var(--accent);
+    transform: translateY(-3px);
+}
+
+.quitacao-summary-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.quitacao-payment-hint {
+    border-radius: 12px;
+    background: #f7fbff;
+    border-color: rgba(11,114,185,.14);
+    color: #24527a;
+}
+
+.quitacao-forma-item {
+    background: #fff;
+    border: 2px solid #f1f5f9;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.quitacao-forma-item:focus-within {
+    border-color: var(--accent);
+}
+
+.quitacao-forma-item .btn-outline-danger {
+    border: none;
+    background: #fee2e2;
+    color: #ef4444;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+}
+
+.quitacao-search-group .input-group-text {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: rgba(255,255,255,0.5);
+}
+
+.quitacao-search-group .form-control {
+    background: rgba(255,255,255,0.05);
+    border: none;
+    color: #fff;
+    border-radius: 0 8px 8px 0;
+}
+
+.quitacao-search-group .form-control::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+
+/* Estilo da Tabela PDV */
+.quitacao-main .table thead th {
+    border: none;
+    background: #f8fafc;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+}
+
+.quitacao-main .table thead th {
+    background: #fbfdff;
+}
+
+.quitacao-main .table tbody tr {
+    cursor: default;
+}
+
+.quitacao-main .table td, .quitacao-main .table th {
+    white-space: nowrap;
+}
+
+.quitacao-main .btn-primary {
+    box-shadow: 0 8px 20px rgba(11,114,185,.18);
+}
+
+.quitacao-main .badge {
+    box-shadow: none;
+}
+
+#quitacaoPagamentoModal .modal-dialog {
+    max-width: 1120px;
+}
+
+#quitacaoPagamentoModal .modal-content {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(16,35,42,0.18);
+}
+
+#quitacaoPagamentoModal .modal-body {
+    padding: 1.25rem;
+    background: var(--background);
+}
+
+#quitacaoPagamentoModal .modal-footer {
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding: 0.95rem 1.25rem;
+}
+
+#quitacaoPagamentoModal .form-group label {
+    font-weight: 700;
+    color: var(--text);
+}
+
+#quitacaoPagamentoModal .form-control {
+    height: 44px;
+}
+
+#quitacaoPagamentoModal textarea.form-control {
+    height: auto;
+    min-height: 110px;
+}
+
+#quitacaoPagamentoModal .btn-outline-primary {
+    border-width: 1.5px;
+}
+
+/* Customizar os checkboxes da lista de dívidas */
+.quitacao-main input.quitacaoCheckbox {
+    width: 22px;
+    height: 22px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    display: inline-block;
+    position: relative;
+    background: #fff;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.quitacao-main input.quitacaoCheckbox:hover { border-color: var(--accent); }
+.quitacao-main input.quitacaoCheckbox:checked {
+    background: linear-gradient(90deg, var(--accent), #0a65a8);
+    border-color: var(--accent);
+}
+.quitacao-main input.quitacaoCheckbox:checked::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: #fff;
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    font-size: 12px;
+}
+
+/* Header (select-all) checkbox styled slightly larger */
+#quitacaoCheckAll {
+    width: 20px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    position: relative;
+    cursor: pointer;
+}
+#quitacaoCheckAll:checked { background: linear-gradient(90deg, var(--accent), #0a65a8); border-color: var(--accent); }
+#quitacaoCheckAll:checked::after { content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: #fff; position: absolute; left: 3px; top: -1px; font-size: 10px; }
+
+
+/* ================= PDV Footer & Total Banner ================= */
+:root {
+    --pdv-control-height: 64px;
+    --pdv-total-min-width: 200px; /* Ajustado para melhor encaixe em mobile */
+}
+
+.pdv-footer {
+    padding: 24px;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: var(--pdv-control-height);
+}
+
+.pdv-footer .col-md-6:first-child,
+.pdv-footer .col-md-6:last-child {
+    display: flex;
+    align-items: center;
+}
+.pdv-footer .col-md-6:first-child { justify-content: flex-start; }
+.pdv-footer .col-md-6:last-child  { justify-content: flex-end; }
+
+.pdv-footer .col-md-6:first-child .btn {
+    height: var(--pdv-control-height);
+    padding: 0 30px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(11,114,185,0.12);
+}
+
+.pdv-footer .col-md-6:last-child .total-banner {
+    height: var(--pdv-control-height);
+    min-width: var(--pdv-total-min-width); /* Mantém min-width para desktop */
+    border-radius: 12px;
+    padding: 12px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(90deg, #0b74b9 0%, #0a65a8 100%);
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(10,86,132,0.16);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.pdv-footer .col-md-6:last-child .total-banner:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px rgba(10,86,132,0.22);
+}
+
+.total-banner .label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.95;
+    margin-right: 12px;
+}
+.total-banner .amount {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+/* Mobile adjustments: stack and full-width */
+@media (max-width: 768px) {
+    :root { --pdv-control-height: 56px; }
+    .pdv-footer .row { flex-direction: column; gap: 12px; min-height: 0; }
+    .pdv-footer .col-md-6 { width: 100%; justify-content: stretch; flex: 0 0 100%; max-width: 100%; } /* Garante largura total em mobile */
+    .pdv-footer .col-md-6:first-child .btn,
+    .pdv-footer .col-md-6:last-child .total-banner { width: 100%; height: auto; min-width: 0; border-radius: 10px; }
+    .total-banner { padding: 14px; text-align: center; }
+}
+
+/* ================= end PDV Footer & Total Banner ============= */
+.modal-content .quitacao-form-inline {
+    background: #fff;
+}
+
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 16px; }
 
 @media (max-width: 1024px) {
@@ -212,12 +621,164 @@ body {
 }
 
 @media (max-width: 768px) {
-    body { font-size: 15px; }
+    body { font-size: 15px; background: #f4f8fc; }
     h1 { font-size: 1.4rem; }
     .navbar-brand { font-size: 1.05rem; }
-    .card { margin-bottom: 14px; }
-    .btn { width: 100%; }
+    .card { margin-bottom: 12px; }
+    .quitacao-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 14px 16px;
+        border-radius: 18px;
+    }
+    .quitacao-pdv-card { border-radius: 18px; overflow: visible; }
+    .quitacao-pdv-card .row { flex-direction: column; }
+    .quitacao-sidebar, .quitacao-main {
+        min-height: auto;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+    .quitacao-sidebar { border-right: 0 !important; border-bottom: 1px solid var(--border); }
+    .quitacao-sidebar-header {
+        padding: 1rem 1rem 0.85rem;
+    }
+    .quitacao-clientes-list {
+        max-height: none;
+        overflow: visible;
+        padding: 0.85rem;
+    }
+    .quitacao-clientes-list .quitacao-cliente {
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+    .quitacao-main { padding: 0; }
+    .pdv-header {
+        padding: 14px 14px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .pdv-body {
+        padding: 12px 14px 6px;
+        overflow: visible;
+    }
+    .pdv-footer {
+        position: static;
+        z-index: auto;
+        box-shadow: none;
+        border-top: 0;
+        background: transparent;
+        padding: 12px 14px 14px;
+    }
+    .pdv-footer .row {
+        min-height: 0;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .pdv-footer .col-md-6:first-child,
+    .pdv-footer .col-md-6:last-child {
+        flex: 0 0 100%;
+        max-width: 100%;
+        align-items: stretch;
+        justify-content: stretch;
+        width: 100%;
+    }
+    .pdv-footer .col-md-6:first-child .btn,
+    .pdv-footer .col-md-6:last-child .total-banner {
+        width: 100%;
+        min-width: 0;
+    }
+    .pdv-footer .col-md-6:first-child .btn {
+        height: 56px;
+        font-size: 1rem;
+        border-radius: 14px;
+    }
+    .pdv-footer .col-md-6:last-child .total-banner {
+        border-radius: 14px;
+        padding: 12px 14px;
+    }
+    .total-banner { text-align: left; justify-content: space-between; }
+    .total-banner .label { margin-right: 10px; }
+    .total-value { font-size: 1.5rem; }
+    .quitacao-summary-grid .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        margin-bottom: 10px !important;
+    }
+    .quitacao-summary-card {
+        padding: 14px;
+        border-radius: 14px;
+    }
+    .quitacao-summary-value { font-size: 1.15rem; }
     .table-responsive { overflow-x:auto; -webkit-overflow-scrolling: touch; }
+    #quitacaoDetalhe .table-responsive { overflow: visible; }
+    #quitacaoDetalhe .table thead { display: none; }
+    #quitacaoDetalhe .table,
+    #quitacaoDetalhe .table tbody,
+    #quitacaoDetalhe .table tr,
+    #quitacaoDetalhe .table td { display: block; width: 100%; }
+    #quitacaoDetalhe .table tbody tr {
+        position: relative;
+        margin-bottom: 10px;
+        padding: 12px 12px 12px 50px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(16,35,42,0.04);
+    }
+    #quitacaoDetalhe .table td {
+        border: 0;
+        padding: 6px 0;
+        white-space: normal;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    #quitacaoDetalhe .table td::before {
+        content: attr(data-label);
+        font-size: 0.66rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        flex: 0 0 auto;
+    }
+    #quitacaoDetalhe .table td:first-child {
+        position: absolute;
+        left: 10px;
+        top: 12px;
+        width: auto;
+        padding: 0;
+        display: block;
+    }
+    #quitacaoDetalhe .table td:first-child::before { display: none; }
+    #quitacaoDetalhe .table td:first-child input.quitacaoCheckbox {
+        width: 24px;
+        height: 24px;
+    }
+    #quitacaoDetalhe .table td:last-child { padding-bottom: 0; }
+    #quitacaoPagamentoModal .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+        height: 100%;
+    }
+    #quitacaoPagamentoModal .modal-content {
+        min-height: 100vh;
+        border-radius: 0;
+    }
+    #quitacaoPagamentoModal .modal-body {
+        padding: 1rem 0.9rem 110px;
+    }
+    #quitacaoPagamentoModal .modal-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 12;
+        padding: 0.85rem 0.9rem;
+    }
+    #quitacaoPagamentoModal .btn { width: auto; }
 }
 
 @media (max-width: 480px) {
@@ -572,5 +1133,238 @@ body {
     }
     .signature-line p {
         border-top: 1px solid #000 !important;
+    }
+}
+
+/* ===================== Generic Message Modal Styles ===================== */
+#genericMessageModal .modal-dialog { max-width: 520px; }
+#genericMessageModal .modal-content {
+    background: linear-gradient(180deg, #0f1724 0%, #111827 100%);
+    color: #f8fafc;
+    border-radius: 14px;
+    border: 0;
+    box-shadow: 0 18px 50px rgba(2,6,23,0.6);
+    overflow: hidden;
+}
+#genericMessageModal .modal-header {
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    padding: 14px 18px;
+}
+#genericMessageModal .modal-title {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+#genericMessageModal .modal-body {
+    color: rgba(255,255,255,0.9);
+    padding: 18px;
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+#genericMessageModal .modal-footer {
+    background: transparent;
+    padding: 10px 16px 18px;
+    border-top: 0;
+}
+#genericMessageModal .btn-primary {
+    background: linear-gradient(90deg, #2563eb, #0ea5a7);
+    border: none;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(3,7,18,0.45);
+}
+#genericMessageModal .close {
+    color: rgba(255,255,255,0.7);
+    opacity: 1;
+}
+
+@media (max-width: 576px) {
+    #genericMessageModal .modal-dialog { margin: 12px; }
+    #genericMessageModal .modal-content { border-radius: 12px; }
+    #genericMessageModal .modal-body { font-size: 0.95rem; padding: 14px; }
+    #genericMessageModal .modal-title { font-size: 1rem; }
+}
+
+/* ===================== end Generic Message Modal Styles ===================== */
+
+/* ===================== Quitação - Light Card Theme ===================== */
+.quitacao-pdv-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: var(--text);
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(16,35,42,0.06);
+    border: 1px solid var(--border);
+}
+.quitacao-clientes-list {
+    background: transparent;
+    padding: 10px;
+}
+.quitacao-clientes-list .quitacao-cliente {
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+}
+.quitacao-clientes-list .quitacao-cliente .quitacao-cliente-name {
+    color: var(--text);
+    font-weight: 600;
+}
+.quitacao-clientes-list .quitacao-cliente.active {
+    background: linear-gradient(90deg, rgba(11,114,185,0.08), rgba(11,114,185,0.05));
+    border-color: rgba(11,114,185,0.12);
+}
+
+#quitacaoDetalhe {
+    background: transparent;
+}
+#quitacaoDetalhe .pdv-header h4,
+#quitacaoDetalhe .pdv-header p,
+#quitacaoDetalhe .pdv-body,
+#quitacaoDetalhe .pdv-footer {
+    color: var(--text);
+}
+#quitacaoDetalhe .table {
+    background: transparent;
+}
+#quitacaoDetalhe .table tbody tr {
+    background: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+#quitacaoDetalhe .table td {
+    color: var(--text);
+}
+
+#quitacaoDetalhe .pdv-footer .total-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, #ffffff, #f8fafc);
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+    /* Make the small label 'Total Selecionado' clearly black */
+    #quitacaoDetalhe .total-banner .label {
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+    /* Also target the actual small span used in markup to ensure visibility */
+    #quitacaoDetalhe .total-banner .d-block.small,
+    #quitacaoDetalhe .total-banner .small,
+    #quitacaoDetalhe .total-banner span[style*="letter-spacing"] {
+        color: #000 !important;
+        opacity: 1 !important;
+    }
+#quitacaoDetalhe #quitacaoTotal {
+    color: var(--text);
+    font-size: 1.6rem;
+}
+#quitacaoDetalhe #quitacaoPagarSelecionados {
+    background: linear-gradient(90deg,#0b74b9,#0a65a8);
+    border: 0;
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(11,114,185,0.12);
+}
+
+@media (max-width: 768px) {
+    .quitacao-clientes-list .quitacao-cliente { padding: 10px; }
+    #quitacaoDetalhe .pdv-footer .total-banner { flex-direction: column-reverse; gap:10px; }
+}
+
+/* ===================== end Quitação Light Theme ===================== */
+
+/* ===================== QUITACAO CHECKOUT FINAL OVERRIDES ===================== */
+@media (min-width: 992px) {
+    .quitacao-pdv-card {
+        height: calc(100vh - 230px);
+    }
+
+    .quitacao-pdv-card .quitacao-sidebar {
+        flex: 0 0 28%;
+        max-width: 28%;
+    }
+    .quitacao-pdv-card .quitacao-main {
+        flex: 0 0 72%;
+        max-width: 72%;
+    }
+
+    .quitacao-pdv-card .quitacao-clientes-list {
+        max-height: min(38vh, 330px);
+        overflow: auto;
+    }
+
+    #quitacaoDetalhe .pdv-footer {
+        padding: 22px 24px;
+    }
+
+    #quitacaoDetalhe .pdv-footer .total-banner {
+        width: 100%;
+        min-height: 126px;
+        padding: 22px 26px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 22px;
+    }
+
+    #quitacaoDetalhe .pdv-footer .total-banner > div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #quitacaoDetalhe #quitacaoTotal {
+        font-size: 3rem;
+        line-height: 1;
+    }
+
+    #quitacaoDetalhe #quitacaoPagarSelecionados {
+        min-width: 330px;
+        min-height: 66px;
+        font-size: 1.25rem !important;
+        border-radius: 14px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #quitacaoDetalhe .pdv-footer {
+        padding: 12px 12px 14px;
+    }
+
+    #quitacaoDetalhe .pdv-footer .total-banner {
+        width: 100%;
+        min-height: 0;
+        padding: 14px;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    #quitacaoDetalhe .pdv-footer .total-banner > div {
+        width: 100%;
+        text-align: left;
+    }
+
+    #quitacaoDetalhe #quitacaoTotal {
+        font-size: 2.6rem;
+        line-height: 1.05;
+        display: block;
+    }
+
+    #quitacaoDetalhe #quitacaoPagarSelecionados {
+        width: 100%;
+        min-width: 0;
+        min-height: 56px;
+        padding: 12px 14px !important;
+        font-size: 1.05rem !important;
+        border-radius: 12px !important;
     }
 }

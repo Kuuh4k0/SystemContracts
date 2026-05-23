@@ -37,8 +37,4 @@ $perfil = $perfil ?? 'usuario';
         </label>
     </div>
     <?php endif; ?>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Criar Usuário</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Cancelar</button>
-    </div>
 </form>

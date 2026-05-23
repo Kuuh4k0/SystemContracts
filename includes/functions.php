@@ -190,17 +190,19 @@ function salvarCobrancasContrato($contrato_id, array $cobrancas) {
     $tipos = $cobrancas['tipo'] ?? [];
     $valores = $cobrancas['valor'] ?? [];
     $descricoes = $cobrancas['descricao'] ?? [];
+    $produto_ids = $cobrancas['produto_id'] ?? [];
 
     try {
         $conn->beginTransaction();
         $delete = $conn->prepare('DELETE FROM contrato_cobrancas WHERE contrato_id = ?');
         $delete->execute([$contrato_id]);
 
-        $insert = $conn->prepare('INSERT INTO contrato_cobrancas (contrato_id, tipo, descricao, valor, ativa) VALUES (?, ?, ?, ?, 1)');
+        $insert = $conn->prepare('INSERT INTO contrato_cobrancas (contrato_id, produto_id, tipo, descricao, valor, ativa) VALUES (?, ?, ?, ?, ?, 1)');
         for ($i = 0; $i < count($tipos); $i++) {
             $tipo = $tipos[$i] ?? '';
             $valor = isset($valores[$i]) ? (float) str_replace(',', '.', (string) $valores[$i]) : 0;
             $descricao = $descricoes[$i] ?? '';
+            $prodId = !empty($produto_ids[$i]) ? $produto_ids[$i] : null;
 
             if (!in_array($tipo, ['momentanea', 'mensal', 'trimestral', 'anual'], true)) {
                 continue;
@@ -209,7 +211,7 @@ function salvarCobrancasContrato($contrato_id, array $cobrancas) {
                 continue;
             }
 
-            $insert->execute([$contrato_id, $tipo, $descricao, $valor]);
+            $insert->execute([$contrato_id, $prodId, $tipo, $descricao, $valor]);
         }
 
         $conn->commit();
@@ -273,12 +275,13 @@ function gerarPagamentosContrato($contrato_id, $recriarFuturos = true) {
             $valor = (float) $cobranca['valor'];
             $descricao = $cobranca['descricao'] ?: 'Cobrança contratual';
             $cobrancaId = $cobranca['id'];
+            $prodId = $cobranca['produto_id'] ?? null;
 
             if ($tipo === 'momentanea') {
                 $dataVencimento = $inicio->format('Y-m-d');
                 if (!pagamentoJaExisteParaCobranca($contrato_id, $dataVencimento, 'servico', $descricao, $valor)) {
-                    $insert = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, contrato_cobranca_id, tipo, descricao, valor, data_vencimento, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-                    $insert->execute([$contrato['cliente_id'], $contrato_id, $cobrancaId, 'servico', $descricao, $valor, $dataVencimento, 'pendente']);
+                    $insert = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, contrato_cobranca_id, produto_id, tipo, descricao, valor, data_vencimento, metodo_pagamento, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                    $insert->execute([$contrato['cliente_id'], $contrato_id, $cobrancaId, $prodId, 'servico', $descricao, $valor, $dataVencimento, $contrato['metodo_pagamento_padrao'] ?? null, 'pendente']);
                 }
                 continue;
             }
@@ -286,9 +289,9 @@ function gerarPagamentosContrato($contrato_id, $recriarFuturos = true) {
             $dataVencimento = calcularVencimentoCobranca($inicio, $tipo);
             while (!$fim || $dataVencimento <= $fim) {
                 $dataFormatada = $dataVencimento->format('Y-m-d');
-                if (!pagamentoJaExisteParaCobranca($contrato_id, $dataFormatada, 'mensalidade', $descricao, $valor)) {
-                    $insert = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, contrato_cobranca_id, tipo, descricao, valor, data_vencimento, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-                    $insert->execute([$contrato['cliente_id'], $contrato_id, $cobrancaId, 'mensalidade', $descricao, $valor, $dataFormatada, 'pendente']);
+                    if (!pagamentoJaExisteParaCobranca($contrato_id, $dataFormatada, 'mensalidade', $descricao, $valor)) {
+                    $insert = $conn->prepare('INSERT INTO pagamentos (cliente_id, contrato_id, contrato_cobranca_id, produto_id, tipo, descricao, valor, data_vencimento, metodo_pagamento, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+                    $insert->execute([$contrato['cliente_id'], $contrato_id, $cobrancaId, $prodId, 'mensalidade', $descricao, $valor, $dataFormatada, $contrato['metodo_pagamento_padrao'] ?? null, 'pendente']);
                 }
                 $dataVencimento = calcularVencimentoCobranca($dataVencimento, $tipo);
             }
@@ -313,7 +316,7 @@ function obterClientesComPendencias() {
 function obterDividasCliente($cliente_id) {
     global $conn;
     try {
-        $stmt = $conn->prepare('SELECT p.*, ct.numero_contrato, cc.tipo AS tipo_cobranca, cc.descricao AS descricao_cobranca FROM pagamentos p LEFT JOIN contratos ct ON ct.id = p.contrato_id LEFT JOIN contrato_cobrancas cc ON cc.id = p.contrato_cobranca_id WHERE p.cliente_id = ? AND p.status IN ("pendente", "atrasado") ORDER BY p.data_vencimento ASC, p.id ASC');
+        $stmt = $conn->prepare('SELECT p.*, ct.numero_contrato FROM pagamentos p LEFT JOIN contratos ct ON ct.id = p.contrato_id WHERE p.cliente_id = ? AND p.status IN ("pendente", "atrasado") ORDER BY p.data_vencimento ASC, p.id ASC');
         $stmt->execute([$cliente_id]);
         return $stmt->fetchAll();
     } catch (Exception $e) {
@@ -321,10 +324,15 @@ function obterDividasCliente($cliente_id) {
     }
 }
 
-function quitarPagamentos($ids, $metodo = 'caixa', $observacoes = '') {
+function quitarPagamentos($ids, $metodo = 'caixa', $observacoes = '', $valor_pago = null) {
     global $conn;
     if (empty($ids) || !is_array($ids)) {
         return ['success' => false, 'message' => 'IDs inválidos'];
+    }
+
+    $observacoesCompleta = trim((string)$observacoes);
+    if ($valor_pago !== null && $valor_pago !== '') {
+        $observacoesCompleta = trim($observacoesCompleta . ' | Valor recebido: R$ ' . number_format((float)$valor_pago, 2, ',', '.'));
     }
 
     try {
@@ -332,7 +340,7 @@ function quitarPagamentos($ids, $metodo = 'caixa', $observacoes = '') {
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $sql = 'UPDATE pagamentos SET status = "pago", data_pagamento = CURDATE(), metodo_pagamento = ?, observacoes = CONCAT(COALESCE(observacoes, ""), CASE WHEN observacoes IS NULL OR observacoes = "" THEN "" ELSE " | " END, ?) WHERE id IN (' . $placeholders . ')';
         $stmt = $conn->prepare($sql);
-        $params = array_merge([$metodo, $observacoes], array_map('intval', $ids));
+        $params = array_merge([$metodo, $observacoesCompleta], array_map('intval', $ids));
         $ok = $stmt->execute($params);
         if (!$ok) {
             $conn->rollBack();

@@ -16,7 +16,7 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
     <nav class="navbar navbar-expand-lg navbar-dark bg-gradient sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="/SystemContracts/dashboard.php">
-                <i class="fas fa-file-contract mr-2"></i>Contratos
+                <i class="fas fa-file-contract mr-2"></i>ARISE TECH LTDA
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -26,6 +26,11 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                     <li class="nav-item <?php echo (strpos($_SERVER['PHP_SELF'], '/clientes/') !== false) ? 'active' : ''; ?>">
                         <a class="nav-link" href="/SystemContracts/clientes/listar.php">
                             <i class="fas fa-users"></i> Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item <?php echo (strpos($_SERVER['PHP_SELF'], '/produtos/') !== false) ? 'active' : ''; ?>">
+                        <a class="nav-link" href="/SystemContracts/produtos/listar.php">
+                            <i class="fas fa-box"></i> Produtos
                         </a>
                     </li>
                     <li class="nav-item <?php echo (strpos($_SERVER['PHP_SELF'], '/contratos/') !== false) ? 'active' : ''; ?>">

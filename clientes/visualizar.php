@@ -24,6 +24,10 @@ if (!$cliente) {
 
 $contratos = obterContratos($id);
 $pagamentos = obterPagamentos($id);
+// obter recibos/quitacoes do cliente
+$stmtRec = $conn->prepare('SELECT * FROM quitacao_recebimentos WHERE cliente_id = ? ORDER BY criado_em DESC');
+$stmtRec->execute([$id]);
+$recibos = $stmtRec->fetchAll();
 
 include __DIR__ . '/../includes/header.php';
 
@@ -55,12 +59,6 @@ $dataCadastro = !empty($cliente['criado_em']) ? date('d/m/Y', strtotime($cliente
     <div class="profile-actions">
         <a href="/SystemContracts/clientes/listar.php" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left mr-1"></i> Voltar
-        </a>
-        <a href="#" data-remote-url="/SystemContracts/clientes/editar.php?id=<?php echo $id; ?>&ajax=1" data-remote-title="Editar Cliente" class="btn btn-warning">
-            <i class="fas fa-edit mr-1"></i> Editar
-        </a>
-        <a href="/SystemContracts/clientes/deletar.php?id=<?php echo $id; ?>" class="btn btn-danger" data-confirm="Tem certeza que deseja deletar: <?php echo addslashes($cliente['nome']); ?>?">
-            <i class="fas fa-trash mr-1"></i> Deletar
         </a>
     </div>
 </div>
@@ -99,76 +97,111 @@ $dataCadastro = !empty($cliente['criado_em']) ? date('d/m/Y', strtotime($cliente
 </div>
 
 <div class="row mt-1">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="fas fa-file-alt icon-left"></i> Contratos
-            </div>
+    <div class="col-12">
+        <div class="card">
             <div class="card-body">
-                <?php if (count($contratos) > 0): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Número</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($contratos as $contrato): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($contrato['numero_contrato']); ?></td>
-                                    <td><?php echo formatarMoeda($contrato['valor_total']); ?></td>
-                                    <td><span class="badge badge-info"><?php echo htmlspecialchars(ucfirst($contrato['status'])); ?></span></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                <ul class="nav nav-tabs" id="clienteTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="contratos-tab" data-toggle="tab" href="#contratosTab" role="tab" aria-controls="contratosTab" aria-selected="true">Contratos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pagamentos-tab" data-toggle="tab" href="#pagamentosTab" role="tab" aria-controls="pagamentosTab" aria-selected="false">Pagamentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="comprovantes-tab" data-toggle="tab" href="#comprovantesTab" role="tab" aria-controls="comprovantesTab" aria-selected="false">Comprovantes</a>
+                    </li>
+                </ul>
+                <div class="tab-content mt-3" id="clienteTabsContent">
+                    <div class="tab-pane fade show active" id="contratosTab" role="tabpanel" aria-labelledby="contratos-tab">
+                        <?php if (count($contratos) > 0): ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($contratos as $contrato): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($contrato['numero_contrato']); ?></td>
+                                        <td><?php echo formatarMoeda($contrato['valor_total']); ?></td>
+                                        <td><span class="badge badge-info"><?php echo htmlspecialchars(ucfirst($contrato['status'])); ?></span></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">📄 Nenhum contrato encontrado.</p>
+                        <?php endif; ?>
                     </div>
-                <?php else: ?>
-                    <p class="text-muted mb-0">📄 Nenhum contrato encontrado.</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="fas fa-credit-card icon-left"></i> Pagamentos
-            </div>
-            <div class="card-body">
-                <?php if (count($pagamentos) > 0): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Valor</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($pagamentos as $pagamento): ?>
-                                    <?php
-                                    $badge_class = 'badge-secondary';
-                                    if ($pagamento['status'] === 'pago') $badge_class = 'badge-success';
-                                    if ($pagamento['status'] === 'pendente') $badge_class = 'badge-warning';
-                                    if ($pagamento['status'] === 'atrasado') $badge_class = 'badge-danger';
-                                    ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars(ucfirst($pagamento['tipo'])); ?></td>
-                                    <td><?php echo formatarMoeda($pagamento['valor']); ?></td>
-                                    <td><span class="badge <?php echo $badge_class; ?>"><?php echo htmlspecialchars(ucfirst($pagamento['status'])); ?></span></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                    <div class="tab-pane fade" id="pagamentosTab" role="tabpanel" aria-labelledby="pagamentos-tab">
+                        <?php if (count($pagamentos) > 0): ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($pagamentos as $pagamento): ?>
+                                        <?php
+                                        $badge_class = 'badge-secondary';
+                                        if ($pagamento['status'] === 'pago') $badge_class = 'badge-success';
+                                        if ($pagamento['status'] === 'pendente') $badge_class = 'badge-warning';
+                                        if ($pagamento['status'] === 'atrasado') $badge_class = 'badge-danger';
+                                        ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars(ucfirst($pagamento['tipo'])); ?></td>
+                                        <td><?php echo formatarMoeda($pagamento['valor']); ?></td>
+                                        <td><span class="badge <?php echo $badge_class; ?>"><?php echo htmlspecialchars(ucfirst($pagamento['status'])); ?></span></td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">💳 Nenhum pagamento encontrado.</p>
+                        <?php endif; ?>
                     </div>
-                <?php else: ?>
-                    <p class="text-muted mb-0">💳 Nenhum pagamento encontrado.</p>
-                <?php endif; ?>
+                    <div class="tab-pane fade" id="comprovantesTab" role="tabpanel" aria-labelledby="comprovantes-tab">
+                        <?php if (count($recibos) > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Recibo</th>
+                                            <th>Data</th>
+                                            <th>Valor Recebido</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($recibos as $r): ?>
+                                            <tr>
+                                                <td><?php echo 'Q-' . str_pad($r['id'], 6, '0', STR_PAD_LEFT); ?></td>
+                                                <td><?php echo !empty($r['criado_em']) ? date('d/m/Y H:i', strtotime($r['criado_em'])) : '-'; ?></td>
+                                                <td><?php echo formatarMoeda($r['valor_recebido']); ?></td>
+                                                <td>
+                                                    <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>" target="_blank" class="btn btn-sm btn-light border" title="Abrir PDF"><i class="fas fa-file-pdf text-primary"></i></a>
+                                                    <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>&formato=png" target="_blank" class="btn btn-sm btn-light border ml-1" title="Abrir imagem"><i class="fas fa-image text-secondary"></i></a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <p class="text-muted mb-0">🧾 Nenhum comprovante encontrado.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -18,10 +18,12 @@ foreach ($dividas as $d) {
     $items[] = [
         'id' => $d['id'],
         'contrato_id' => $d['contrato_id'],
-        'descricao' => $d['descricao'] ?? ('Parcela ' . ($d['parcela'] ?? '')),
-        'vencimento' => $d['vencimento'],
+        'numero_contrato' => $d['numero_contrato'] ?? '',
+        'descricao' => $d['descricao'] ?? '',
+        'tipo' => $d['tipo'] ?? '',
+        'vencimento' => $d['data_vencimento'] ?? '',
         'valor' => number_format($d['valor'], 2, '.', ''),
-        'situacao' => $d['situacao'],
+        'situacao' => $d['status'] ?? '',
     ];
 }
 

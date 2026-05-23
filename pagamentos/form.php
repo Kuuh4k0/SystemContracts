@@ -57,8 +57,4 @@ $clienteSelecionado = $clienteSelecionado ?? '';
         <label for="data_vencimento">Data Vencimento *</label>
         <input type="date" class="form-control" id="data_vencimento" name="data_vencimento" required value="<?php echo htmlspecialchars($data_vencimento); ?>">
     </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Pagamento</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> Cancelar</button>
-    </div>
 </form>

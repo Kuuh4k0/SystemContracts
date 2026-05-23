@@ -268,7 +268,7 @@ $(document).on('click', '#buscarCepBtn', function(e) {
             $('#cidade').val(data.localidade || '');
             $('#estado').val(data.uf || '');
         } else {
-            alert('CEP não encontrado ou inválido.');
+            showMessageModal('CEP', 'CEP não encontrado ou inválido.');
         }
     });
 });
@@ -337,6 +337,18 @@ $(document).on('click', '.removerCobranca', function(e) {
 });
 
 $(document).on('input change', '#cobrancasList .cobranca-valor, #cobrancasList .cobranca-tipo, #cobrancasList .cobranca-descricao', function() {
+    atualizarValorTotalContrato();
+});
+
+// Auto-preencher valor e descrição ao selecionar um produto no contrato
+$(document).on('change', '.cobranca-produto', function() {
+    var $option = $(this).find('option:selected');
+    var preco = $option.data('preco');
+    var nome = $option.text().trim();
+    var $row = $(this).closest('.cobranca-item');
+    
+    if (preco) $row.find('.cobranca-valor').val(parseFloat(preco).toFixed(2));
+    if (nome && nome !== 'Nenhum') $row.find('.cobranca-descricao').val(nome);
     atualizarValorTotalContrato();
 });
 
@@ -445,6 +457,20 @@ $(document).off('submit', '#remoteModalBody form').on('submit', '#remoteModalBod
             }
         });
 
+        // Contracts list search: run only on form submit (click Filtrar or Enter)
+        $(document).on('submit', '#contratosSearchForm', function(e) {
+            e.preventDefault();
+            var termo = String($('#contratosSearch').val() || '').toLowerCase().trim();
+            $('#contratosTable tbody tr').each(function() {
+                var $tr = $(this);
+                var numero = $tr.find('td').eq(0).text().toLowerCase();
+                var cliente = $tr.find('td').eq(1).text().toLowerCase();
+                var status = $tr.find('td').eq(3).text().toLowerCase();
+                var text = (numero + ' ' + cliente + ' ' + status).replace(/\s+/g, ' ');
+                $tr.toggle(!termo || text.indexOf(termo) !== -1);
+            });
+        });
+
 // Quitação: load debts and handle payments
 $(document).on('click', '.quitacao-cliente', function(e) {
     e.preventDefault();
@@ -452,6 +478,21 @@ $(document).on('click', '.quitacao-cliente', function(e) {
     $('.quitacao-cliente').removeClass('active');
     $(this).addClass('active');
     loadQuitacaoDetalhes(clienteId);
+});
+
+$(document).on('input', '#quitacaoSearch', function() {
+    var termo = String($(this).val() || '').toLowerCase().trim();
+    $('.quitacao-cliente').each(function() {
+        var nome = String($(this).data('cliente-nome') || $(this).text()).toLowerCase();
+        $(this).toggle(!termo || nome.indexOf(termo) !== -1);
+    });
+});
+
+$(document).ready(function() {
+    var $firstCliente = $('.quitacao-cliente').first();
+    if ($firstCliente.length) {
+        $firstCliente.trigger('click');
+    }
 });
 
 function loadQuitacaoDetalhes(clienteId) {
@@ -463,31 +504,33 @@ function loadQuitacaoDetalhes(clienteId) {
         }
         var items = resp.data;
         if (!items.length) {
-            $('#quitacaoDetalhe').html('<div class="p-3 text-muted">Nenhuma dívida encontrada para este cliente.</div>');
+            $('#quitacaoDetalhe').html('<div class="text-center py-5 text-muted"><i class="fas fa-check-circle fa-3x mb-3 text-success"></i><br>Tudo em dia! Nenhuma pendência encontrada.</div>');
             return;
         }
         var html = [];
-        html.push('<div class="d-flex justify-content-between align-items-center mb-2">');
-        html.push('<h5 class="mb-0">Dívidas</h5>');
-        html.push('<div><button class="btn btn-sm btn-primary" id="quitacaoPagarSelecionados">Registrar pagamento</button></div>');
+        html.push('<div class="pdv-header d-flex justify-content-between align-items-end">');
+        html.push('<div><h4 class="mb-0 font-weight-bold text-dark">Checkout de Dívidas</h4><p class="text-muted mb-0 small">Selecione os itens para realizar o recebimento</p></div>');
+        html.push('<div class="text-right"><span class="badge badge-primary px-3 py-2" style="border-radius:8px">' + items.length + ' Itens</span></div>');
         html.push('</div>');
-        html.push('<div class="table-responsive"><table class="table table-sm table-hover">');
-        html.push('<thead><tr><th><input type="checkbox" id="quitacaoCheckAll"></th><th>Descrição</th><th>Vencimento</th><th class="text-right">Valor</th><th>Situação</th></tr></thead>');
+        html.push('<div class="pdv-body"><div class="table-responsive"><table class="table">');
+        html.push('<thead><tr><th width="50"><input type="checkbox" id="quitacaoCheckAll"></th><th>Contrato</th><th>Descrição</th><th>Vencimento</th><th class="text-right">Valor Total</th></tr></thead>');
         html.push('<tbody>');
         items.forEach(function(it) {
             html.push('<tr data-id="'+it.id+'">');
-            html.push('<td><input type="checkbox" class="quitacaoCheckbox" data-valor="'+it.valor+'"></td>');
-            html.push('<td>'+escapeHtml(it.descricao)+'</td>');
-            html.push('<td>'+it.vencimento+'</td>');
-            html.push('<td class="text-right">R$ '+parseFloat(it.valor).toFixed(2)+'</td>');
-            html.push('<td>'+escapeHtml(it.situacao)+'</td>');
+            html.push('<td data-label="Sel."><input type="checkbox" class="quitacaoCheckbox" data-valor="'+it.valor+'"></td>');
+            html.push('<td data-label="Contrato"><span class="text-primary font-weight-bold">'+(it.numero_contrato ? escapeHtml(it.numero_contrato) : '-')+'</span></td>');
+            html.push('<td data-label="Descrição">'+escapeHtml(it.descricao || it.tipo || 'Pagamento')+'</td>');
+            html.push('<td data-label="Vencimento">'+(it.vencimento || '-')+'</td>');
+            html.push('<td data-label="Valor" class="text-right font-weight-bold text-dark" style="font-size:1.1rem">R$ '+parseFloat(it.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})+'</td>');
             html.push('</tr>');
         });
-        html.push('</tbody></table></div>');
-        html.push('<div class="d-flex justify-content-between align-items-center">');
-        html.push('<div>Pagamento em: <select id="quitacaoMetodo" class="form-control form-control-sm d-inline-block" style="width:auto;"><option value="dinheiro">Dinheiro</option><option value="cartao">Cartão</option><option value="pix">PIX</option></select></div>');
-        html.push('<div class="font-weight-bold">Total: <span id="quitacaoTotal">R$ 0.00</span></div>');
-        html.push('</div>');
+        html.push('</tbody></table></div></div>');
+        
+        html.push('<div class="pdv-footer">');
+        html.push('<div class="total-banner py-3">');
+        html.push('<div><span class="d-block small text-uppercase font-weight-bold mb-1" style="letter-spacing:1px; opacity:0.7">Total Selecionado</span><span class="h1 font-weight-bold mb-0" id="quitacaoTotal">R$ 0,00</span></div>');
+        html.push('<button class="btn btn-success btn-lg px-5 py-3 shadow-lg font-weight-bold" id="quitacaoPagarSelecionados" style="border-radius:12px; font-size:1.2rem"><i class="fas fa-money-bill-wave mr-2"></i> FECHAR PEDIDO</button>');
+        html.push('</div></div>');
 
         $('#quitacaoDetalhe').html(html.join(''));
     }).fail(function() {
@@ -497,41 +540,335 @@ function loadQuitacaoDetalhes(clienteId) {
 
 $(document).on('change', '#quitacaoCheckAll', function() {
     var checked = $(this).is(':checked');
-    $('.quitacaoCheckbox').prop('checked', checked).trigger('change');
+    $('.quitacaoCheckbox:visible').prop('checked', checked).trigger('change');
 });
+
+// removed row-click and keyboard toggle to restore previous behavior
 
 $(document).on('change', '.quitacaoCheckbox', function() {
     var total = 0;
-    $('.quitacaoCheckbox:checked').each(function() {
+    // consider only visible checkboxes (honors current search/filter)
+    $('.quitacaoCheckbox:visible:checked').each(function() {
         total += parseFloat($(this).data('valor')) || 0;
     });
     $('#quitacaoTotal').text('R$ ' + total.toFixed(2));
+
+    // update the "select all" checkbox to reflect visible selection state
+    var totalVisible = $('.quitacaoCheckbox:visible').length;
+    var checkedVisible = $('.quitacaoCheckbox:visible:checked').length;
+    $('#quitacaoCheckAll').prop('checked', totalVisible > 0 && checkedVisible === totalVisible);
 });
 
 $(document).on('click', '#quitacaoPagarSelecionados', function(e) {
     e.preventDefault();
-    var ids = [];
+    var selecionados = [];
+    var total = 0;
     $('#quitacaoDetalhe tbody tr').each(function(idx, tr) {
         var cb = $(tr).find('.quitacaoCheckbox');
         if (cb.is(':checked')) {
-            ids.push($(tr).data('id'));
+            var id = $(tr).data('id');
+            var valor = parseFloat(cb.data('valor')) || 0;
+            selecionados.push(id);
+            total += valor;
         }
     });
-    if (!ids.length) {
-        alert('Selecione ao menos um título para pagar.');
+    if (!selecionados.length) {
+        showMessageModal('Atenção', 'Selecione ao menos um título para pagar.');
         return;
     }
-    var metodo = $('#quitacaoMetodo').val();
-    var observacoes = prompt('Observações (opcional):', '');
-    $.post('/SystemContracts/pagamentos/quitacao_quitar.php', { ids: ids, metodo: metodo, observacoes: observacoes }, function(resp) {
+    $('#quitacaoPagamentoIds').val(JSON.stringify(selecionados));
+    $('#totalOriginal').val(total.toFixed(2));
+    $('#quitacaoTotalSelecionado').text('R$ ' + total.toFixed(2));
+    $('#quitacaoTotalRecebido').text('R$ ' + total.toFixed(2));
+    $('#quitacaoTotalTroco').text('R$ 0,00');
+    $('#quitacaoTotalRestante').text('R$ 0,00');
+    $('#quitacaoObservacoes').val('');
+    $('#quitacaoFormasList').empty();
+    addQuitacaoForma({ metodo: 'dinheiro', valor: total.toFixed(2) });
+    $('#quitacaoPagamentoModal').modal('show');
+});
+
+// Toggle contrato status from the listing (ajax)
+$(document).on('change', '.contrato-status-switch', function() {
+    var $cb = $(this);
+    var id = $cb.data('id');
+    var status = $cb.is(':checked') ? 'ativo' : 'inativo';
+    $.post('/SystemContracts/contratos/toggle_status.php', { id: id, status: status }, function(resp) {
+        try {
+            var json = (typeof resp === 'object') ? resp : JSON.parse(resp);
+            if (!json.success) {
+                showMessageModal('Erro', json.message || 'Não foi possível atualizar status.');
+                // revert checkbox
+                $cb.prop('checked', !$cb.is(':checked'));
+            }
+        } catch (e) {
+            showMessageModal('Erro', 'Resposta inválida do servidor.');
+            $cb.prop('checked', !$cb.is(':checked'));
+        }
+    }).fail(function() {
+        showMessageModal('Erro', 'Erro de rede ao atualizar status.');
+        $cb.prop('checked', !$cb.is(':checked'));
+    });
+});
+
+function addQuitacaoForma(data) {
+    var template = document.getElementById('quitacaoFormaTemplate');
+    var container = document.getElementById('quitacaoFormasList');
+    if (!template || !container) return;
+
+    var fragment = template.content.cloneNode(true);
+    var item = fragment.querySelector('.quitacao-forma-item');
+    var metodo = fragment.querySelector('.quitacao-forma-metodo');
+    var valor = fragment.querySelector('.quitacao-forma-valor');
+    var cartaoWrap = fragment.querySelector('.quitacao-forma-cartao-wrap');
+    var cartaoTipo = fragment.querySelector('.quitacao-forma-cartao-tipo');
+
+    if (data && data.metodo) metodo.value = data.metodo;
+    if (data && data.valor !== undefined) valor.value = data.valor;
+    if (data && data.cartao_tipo) cartaoTipo.value = data.cartao_tipo;
+
+    container.appendChild(fragment);
+    updateQuitacaoFormaVisibilidade(item);
+    recalcQuitacaoSplit();
+}
+
+function updateQuitacaoFormaVisibilidade(item) {
+    var $item = $(item);
+    var metodo = $item.find('.quitacao-forma-metodo').val();
+    if (metodo === 'cartao') {
+        $item.find('.quitacao-forma-cartao-wrap').removeClass('d-none');
+    } else {
+        $item.find('.quitacao-forma-cartao-wrap').addClass('d-none');
+    }
+}
+
+function recalcQuitacaoSplit() {
+    var total = parseFloat($('#totalOriginal').val()) || 0;
+    var recebido = 0;
+    var temDinheiro = false;
+    $('#quitacaoFormasList .quitacao-forma-item').each(function() {
+        var $item = $(this);
+        var valor = parseFloat($item.find('.quitacao-forma-valor').val()) || 0;
+        var metodo = $item.find('.quitacao-forma-metodo').val();
+        recebido += valor;
+        if (metodo === 'dinheiro') {
+            temDinheiro = true;
+        }
+    });
+    var restante = total - recebido;
+    var troco = (temDinheiro && recebido > total) ? (recebido - total) : 0;
+    $('#quitacaoTotalSelecionado').text('R$ ' + total.toFixed(2));
+    $('#quitacaoTotalRecebido').text('R$ ' + recebido.toFixed(2));
+    $('#quitacaoTotalTroco').text('R$ ' + troco.toFixed(2));
+    $('#quitacaoTotalRestante').text('R$ ' + Math.max(restante, 0).toFixed(2));
+
+    var $restante = $('#quitacaoTotalRestante');
+    var $troco = $('#quitacaoTotalTroco');
+
+    $restante.toggleClass('text-danger', restante > 0);
+    $restante.toggleClass('text-success', restante <= 0);
+    $restante.toggleClass('text-warning', false);
+
+    $troco.toggleClass('text-success', troco > 0);
+    $troco.toggleClass('text-primary', troco <= 0);
+
+    var $hint = $('#quitacaoTrocoHint');
+    if ($hint.length) {
+        if (recebido > total && !temDinheiro) {
+            $hint.removeClass('alert-info alert-success').addClass('alert-danger').html('<i class="fas fa-exclamation-triangle mr-1"></i>Excesso sem dinheiro não gera troco. Ajuste os valores ou inclua uma forma em dinheiro.');
+        } else if (troco > 0) {
+            $hint.removeClass('alert-info alert-danger').addClass('alert-success').html('<i class="fas fa-check-circle mr-1"></i>Troco calculado automaticamente: <strong>R$ ' + troco.toFixed(2) + '</strong>.');
+        } else {
+            $hint.removeClass('alert-danger alert-success').addClass('alert-info').html('<i class="fas fa-info-circle mr-1"></i>Quando o valor em dinheiro for maior que o total, o troco é calculado automaticamente.');
+        }
+    }
+}
+
+$(document).on('click', '#addQuitacaoForma', function() {
+    addQuitacaoForma({ metodo: 'dinheiro', valor: '' });
+});
+
+$(document).on('change', '.quitacao-forma-metodo', function() {
+    updateQuitacaoFormaVisibilidade($(this).closest('.quitacao-forma-item')[0]);
+    recalcQuitacaoSplit();
+});
+
+$(document).on('input', '.quitacao-forma-valor', function() {
+    recalcQuitacaoSplit();
+});
+
+$(document).on('click', '.quitacao-remover-forma', function() {
+    $(this).closest('.quitacao-forma-item').remove();
+    if (!$('#quitacaoFormasList .quitacao-forma-item').length) {
+        addQuitacaoForma({ metodo: 'dinheiro', valor: '' });
+    }
+    recalcQuitacaoSplit();
+});
+
+$(document).on('click', '#quitacaoConfirmarPagamento', function(e) {
+    e.preventDefault();
+    var ids = [];
+    try {
+        ids = JSON.parse($('#quitacaoPagamentoIds').val() || '[]');
+    } catch (err) {
+        ids = [];
+    }
+    if (!ids.length) {
+        showMessageModal('Atenção', 'Selecione ao menos um título para pagar.');
+        return;
+    }
+    var total = parseFloat($('#totalOriginal').val()) || 0;
+    var formas = [];
+    var valorPago = 0;
+    var temDinheiro = false;
+
+    $('#quitacaoFormasList .quitacao-forma-item').each(function() {
+        var metodo = $(this).find('.quitacao-forma-metodo').val();
+        var valor = parseFloat($(this).find('.quitacao-forma-valor').val()) || 0;
+        var cartaoTipo = $(this).find('.quitacao-forma-cartao-tipo').val() || '';
+        if (valor > 0) {
+            valorPago += valor;
+            formas.push({ metodo: metodo, valor: valor, cartao_tipo: cartaoTipo });
+            if (metodo === 'dinheiro') {
+                temDinheiro = true;
+            }
+        }
+    });
+
+    if (!formas.length) {
+        showMessageModal('Atenção', 'Adicione ao menos uma forma de pagamento.');
+        return;
+    }
+
+    if (valorPago < total - 0.01) {
+        showMessageModal('Atenção', 'A soma das formas de pagamento precisa atingir o total da quitação.');
+        return;
+    }
+
+    if (valorPago > total + 0.01 && !temDinheiro) {
+        showMessageModal('Atenção', 'Troco só pode ser gerado quando houver pagamento em dinheiro.');
+        return;
+    }
+
+    var observacoes = $('#quitacaoObservacoes').val();
+    var $btn = $(this);
+    $btn.prop('disabled', true).addClass('disabled');
+
+    var request = $.post('/SystemContracts/pagamentos/quitacao_quitar.php', {
+        ids: ids,
+        valor_pago: valorPago,
+        formas_json: JSON.stringify(formas),
+        observacoes: observacoes
+    }, function(resp) {
         if (!resp.success) {
-            alert(resp.message || 'Erro ao processar pagamento.');
+            showMessageModal('Erro', resp.message || 'Erro ao processar pagamento.');
             return;
         }
+        $('#quitacaoPagamentoModal').modal('hide');
         resp.updated.forEach(function(id) {
             $('#quitacaoDetalhe tbody tr[data-id="'+id+'"]').fadeOut(function(){ $(this).remove(); updateQuitacaoAfterRemoval(); });
         });
-    }, 'json').fail(function(){ alert('Erro na requisição.'); });
+        abrirModalCupomQuitacao(resp);
+    }, 'json');
+
+    request.fail(function(){ showMessageModal('Erro', 'Erro na requisição.'); });
+    request.always(function() {
+        $btn.prop('disabled', false).removeClass('disabled');
+    });
+});
+
+var ultimoCupomQuitacao = {
+    previewUrl: '',
+    pdfUrl: '',
+    imageUrl: ''
+};
+
+function abrirModalCupomQuitacao(resp) {
+    var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    var previewUrl = (isMobile && resp.image_url) ? resp.image_url : resp.pdf_url;
+
+    if (!previewUrl) {
+        showMessageModal('Aviso', 'Quitação confirmada com sucesso, mas não foi possível abrir o cupom.');
+        return;
+    }
+
+    ultimoCupomQuitacao.previewUrl = previewUrl;
+    ultimoCupomQuitacao.pdfUrl = resp.pdf_url || '';
+    ultimoCupomQuitacao.imageUrl = resp.image_url || '';
+
+    $('#quitacaoReciboPreview').attr('src', previewUrl);
+    $('#quitacaoReciboModal').modal('show');
+}
+
+function showMessageModal(title, message) {
+    var $modal = $('#genericMessageModal');
+    if (!$modal.length) {
+        var html = ''+
+            '<div class="modal fade" id="genericMessageModal" tabindex="-1" role="dialog" aria-hidden="true">'+
+            '  <div class="modal-dialog modal-dialog-centered" role="document">'+
+            '    <div class="modal-content">'+
+            '      <div class="modal-header">'+
+            '        <h5 class="modal-title" id="genericMessageModalTitle">Mensagem</h5>'+
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">'+
+            '          <span aria-hidden="true">&times;</span>'+
+            '        </button>'+
+            '      </div>'+
+            '      <div class="modal-body" id="genericMessageModalBody"></div>'+
+            '      <div class="modal-footer">'+
+            '        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>'+
+            '      </div>'+
+            '    </div>'+
+            '  </div>'+
+            '</div>';
+        $('body').append(html);
+        $modal = $('#genericMessageModal');
+    }
+    $('#genericMessageModalTitle').text(title || 'Mensagem');
+    $('#genericMessageModalBody').html(message || '');
+    $modal.modal('show');
+}
+
+$(document).on('click', '#quitacaoReciboOpen', function() {
+    if (!ultimoCupomQuitacao.previewUrl) return;
+    window.open(ultimoCupomQuitacao.previewUrl, '_blank');
+});
+
+$(document).on('click', '#quitacaoReciboPrint', function() {
+    var iframe = document.getElementById('quitacaoReciboPreview');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        return;
+    }
+    if (ultimoCupomQuitacao.previewUrl) {
+        window.open(ultimoCupomQuitacao.previewUrl, '_blank');
+    }
+});
+
+$(document).on('click', '#quitacaoReciboShare', function() {
+    var shareTarget = ultimoCupomQuitacao.imageUrl || ultimoCupomQuitacao.pdfUrl || ultimoCupomQuitacao.previewUrl;
+    if (!shareTarget) {
+        showMessageModal('Aviso', 'Cupom indisponível para compartilhamento.');
+        return;
+    }
+
+    if (navigator.share) {
+        navigator.share({
+            title: 'Cupom Fiscal - Quitação',
+            text: 'Comprovante de quitação gerado com sucesso.',
+            url: shareTarget
+        }).catch(function(){});
+        return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareTarget)
+            .then(function(){ showMessageModal('Sucesso', 'Link do cupom copiado para a área de transferência.'); })
+            .catch(function(){ window.open(shareTarget, '_blank'); });
+        return;
+    }
+
+    window.open(shareTarget, '_blank');
 });
 
 function updateQuitacaoAfterRemoval() {
@@ -547,3 +884,29 @@ function escapeHtml(text) {
     return $('<div>').text(text).html();
 }
 
+// When the receipt modal is closed, refresh the clients list fragment without a full reload
+$(document).on('hidden.bs.modal', '#quitacaoReciboModal', function() {
+    // fetch current page and replace the clients list fragment
+    $.get(window.location.href, function(html) {
+        try {
+            var $newList = $(html).find('#quitacaoClientesList');
+            if ($newList.length) {
+                $('#quitacaoClientesList').replaceWith($newList);
+                // Ensure a client is selected and details are loaded
+                var $first = $('.quitacao-cliente').first();
+                if ($first.length) {
+                    $('.quitacao-cliente').removeClass('active');
+                    $first.addClass('active').trigger('click');
+                } else {
+                    $('#quitacaoDetalhe').html('<div class="text-center py-5 text-muted"><i class="fas fa-check-circle fa-3x mb-3 text-success"></i><br>Tudo em dia! Nenhuma pendência encontrada.</div>');
+                }
+            }
+        } catch (e) {
+            // if anything fails, fall back to a safe operation: reload current details
+            var $active = $('.quitacao-cliente.active').first();
+            if ($active.length) {
+                loadQuitacaoDetalhes($active.data('client-id'));
+            }
+        }
+    });
+});

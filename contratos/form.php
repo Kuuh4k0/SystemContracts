@@ -4,6 +4,7 @@ if (!function_exists('obterClientes')) require_once __DIR__ . '/../includes/func
 
 $clientes = $clientes ?? obterClientes();
 $cobrancasExistentes = $cobrancasExistentes ?? [];
+$produtos = $conn->query("SELECT * FROM produtos WHERE ativo = 1 ORDER BY nome ASC")->fetchAll();
 $descricao = $descricao ?? '';
 $valor_total = $valor_total ?? '';
 $data_inicio = $data_inicio ?? '';
@@ -44,7 +45,7 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
                     <div class="card mb-2 cobranca-item" data-cobranca-id="<?php echo htmlspecialchars($cobranca['id']); ?>">
                         <div class="card-body p-2">
                             <div class="form-row align-items-end">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label>Tipo</label>
                                     <select class="form-control cobranca-tipo" name="cobrancas[tipo][]">
                                         <option value="momentanea" <?php echo ($cobranca['tipo'] === 'momentanea') ? 'selected' : ''; ?>>Momentânea</option>
@@ -53,7 +54,18 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
                                         <option value="anual" <?php echo ($cobranca['tipo'] === 'anual') ? 'selected' : ''; ?>>Anual</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label>Produto</label>
+                                    <select class="form-control cobranca-produto" name="cobrancas[produto_id][]">
+                                        <option value="">Nenhum</option>
+                                        <?php foreach ($produtos as $p): ?>
+                                            <option value="<?php echo $p['id']; ?>" data-preco="<?php echo $p['preco']; ?>" <?php echo (isset($cobranca['produto_id']) && $cobranca['produto_id'] == $p['id']) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($p['nome']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <label>Valor (R$)</label>
                                     <input type="number" step="0.01" class="form-control cobranca-valor" name="cobrancas[valor][]" required value="<?php echo htmlspecialchars($cobranca['valor']); ?>">
                                 </div>
@@ -73,24 +85,9 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
         <button type="button" id="adicionarCobranca" class="btn btn-sm btn-outline-primary"><i class="fas fa-plus"></i> Adicionar Cobrança</button>
         <small class="form-text text-muted">Adicione quantas cobranças desejar (momentânea, mensal, trimestral, anual).</small>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select class="form-control" id="status" name="status">
-                    <option value="ativo" <?php echo $status === 'ativo' ? 'selected' : ''; ?>>Ativo</option>
-                    <option value="rascunho" <?php echo $status === 'rascunho' ? 'selected' : ''; ?>>Rascunho</option>
-                    <option value="finalizado" <?php echo $status === 'finalizado' ? 'selected' : ''; ?>>Finalizado</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="valor_total_hidden" class="text-muted">Valor Total (opcional)</label>
-                <input type="hidden" id="valor_total" name="valor_total" value="<?php echo htmlspecialchars($valor_total); ?>">
-            </div>
-        </div>
-    </div>
+    <!-- Status and Valor Total removed from visible form per request -->
+    <input type="hidden" id="status" name="status" value="<?php echo htmlspecialchars($status); ?>">
+    <input type="hidden" id="valor_total" name="valor_total" value="<?php echo htmlspecialchars($valor_total); ?>">
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
@@ -100,8 +97,8 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
         </div>
         <div class="col-md-6">
             <div class="form-group">
-                <label for="data_fim">Data Fim</label>
-                <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
+                    <label for="data_fim">Data Fim</label>
+                    <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
             </div>
         </div>
     </div>
@@ -112,7 +109,7 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
     <div class="card mb-2 cobranca-item">
         <div class="card-body p-2">
             <div class="form-row align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label>Tipo</label>
                     <select class="form-control cobranca-tipo" name="cobrancas[tipo][]">
                         <option value="momentanea">Momentânea</option>
@@ -121,7 +118,16 @@ $arquivoPdfAtual = $arquivoPdfAtual ?? '';
                         <option value="anual">Anual</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label>Produto</label>
+                    <select class="form-control cobranca-produto" name="cobrancas[produto_id][]">
+                        <option value="">Nenhum</option>
+                        <?php foreach ($produtos as $p): ?>
+                            <option value="<?php echo $p['id']; ?>" data-preco="<?php echo $p['preco']; ?>"><?php echo htmlspecialchars($p['nome']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label>Valor (R$)</label>
                     <input type="number" step="0.01" class="form-control cobranca-valor" name="cobrancas[valor][]" required>
                 </div>
