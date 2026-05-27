@@ -170,6 +170,8 @@ echo json_encode([
     'success' => true,
     'message' => 'Pagamentos registrados com sucesso.',
     'updated' => $ids,
-    'pdf_url' => '/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=' . $reciboId,
+    'pdf_url' => '/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=' . $reciboId . '&formato=termico',
+    'pdf_url_a4' => '/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=' . $reciboId . '&formato=a4',
+    'pdf_url_termico' => '/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=' . $reciboId . '&formato=termico',
     'image_url' => '/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=' . $reciboId . '&formato=png',
 ]);

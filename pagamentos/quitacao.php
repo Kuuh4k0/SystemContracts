@@ -171,6 +171,12 @@ $devedores = obterClientesComPendencias();
                 </div>
             </div>
             <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" id="quitacaoReciboOpenA4">
+                    <i class="fas fa-file-pdf mr-1"></i>A4
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="quitacaoReciboOpenThermal">
+                    <i class="fas fa-receipt mr-1"></i>Térmica
+                </button>
                 <button type="button" class="btn btn-outline-secondary" id="quitacaoReciboOpen">
                     <i class="fas fa-external-link-alt mr-1"></i>Abrir em nova aba
                 </button>

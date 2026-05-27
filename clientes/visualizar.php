@@ -189,8 +189,14 @@ $dataCadastro = !empty($cliente['criado_em']) ? date('d/m/Y', strtotime($cliente
                                                 <td><?php echo !empty($r['criado_em']) ? date('d/m/Y H:i', strtotime($r['criado_em'])) : '-'; ?></td>
                                                 <td><?php echo formatarMoeda($r['valor_recebido']); ?></td>
                                                 <td>
-                                                    <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>" target="_blank" class="btn btn-sm btn-light border" title="Abrir PDF"><i class="fas fa-file-pdf text-primary"></i></a>
-                                                    <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>&formato=png" target="_blank" class="btn btn-sm btn-light border ml-1" title="Abrir imagem"><i class="fas fa-image text-secondary"></i></a>
+                                                    <div class="btn-group btn-group-sm" role="group" aria-label="Formatos do comprovante">
+                                                        <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>&formato=a4" target="_blank" class="btn btn-light border" title="Abrir versão A4">
+                                                            <i class="fas fa-file-pdf text-primary"></i> A4
+                                                        </a>
+                                                        <a href="/SystemContracts/pagamentos/quitacao_recibo.php?recibo_id=<?php echo $r['id']; ?>&formato=termico" target="_blank" class="btn btn-light border" title="Abrir versão cupom térmico">
+                                                            <i class="fas fa-receipt text-secondary"></i> Cupom
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

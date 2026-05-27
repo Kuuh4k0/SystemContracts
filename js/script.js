@@ -780,12 +780,13 @@ $(document).on('click', '#quitacaoConfirmarPagamento', function(e) {
 var ultimoCupomQuitacao = {
     previewUrl: '',
     pdfUrl: '',
+    pdfUrlA4: '',
+    pdfUrlThermal: '',
     imageUrl: ''
 };
 
 function abrirModalCupomQuitacao(resp) {
-    var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-    var previewUrl = (isMobile && resp.image_url) ? resp.image_url : resp.pdf_url;
+    var previewUrl = resp.pdf_url_termico || resp.pdf_url || resp.image_url;
 
     if (!previewUrl) {
         showMessageModal('Aviso', 'Quitação confirmada com sucesso, mas não foi possível abrir o cupom.');
@@ -793,7 +794,9 @@ function abrirModalCupomQuitacao(resp) {
     }
 
     ultimoCupomQuitacao.previewUrl = previewUrl;
-    ultimoCupomQuitacao.pdfUrl = resp.pdf_url || '';
+    ultimoCupomQuitacao.pdfUrl = resp.pdf_url || resp.pdf_url_termico || '';
+    ultimoCupomQuitacao.pdfUrlA4 = resp.pdf_url_a4 || resp.pdf_url || '';
+    ultimoCupomQuitacao.pdfUrlThermal = resp.pdf_url_termico || resp.pdf_url || '';
     ultimoCupomQuitacao.imageUrl = resp.image_url || '';
 
     $('#quitacaoReciboPreview').attr('src', previewUrl);
@@ -831,6 +834,18 @@ function showMessageModal(title, message) {
 $(document).on('click', '#quitacaoReciboOpen', function() {
     if (!ultimoCupomQuitacao.previewUrl) return;
     window.open(ultimoCupomQuitacao.previewUrl, '_blank');
+});
+
+$(document).on('click', '#quitacaoReciboOpenA4', function() {
+    var url = ultimoCupomQuitacao.pdfUrlA4 || ultimoCupomQuitacao.pdfUrl || ultimoCupomQuitacao.previewUrl;
+    if (!url) return;
+    window.open(url, '_blank');
+});
+
+$(document).on('click', '#quitacaoReciboOpenThermal', function() {
+    var url = ultimoCupomQuitacao.pdfUrlThermal || ultimoCupomQuitacao.previewUrl || ultimoCupomQuitacao.pdfUrl;
+    if (!url) return;
+    window.open(url, '_blank');
 });
 
 $(document).on('click', '#quitacaoReciboPrint', function() {
