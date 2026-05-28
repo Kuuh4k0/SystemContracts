@@ -14,16 +14,25 @@ $dadosGrafico = obterDadosGraficoFaturamento();
 ?>
 <?php include __DIR__ . '/includes/header.php'; ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
-    <div class="text-muted d-none d-md-block">
-        <i class="far fa-calendar-alt"></i> <?php echo date('d/m/Y'); ?>
+<div class="dashboard-hero">
+    <div>
+        <div class="dashboard-kicker">
+            <i class="fas fa-chart-line"></i>
+            Painel operacional
+        </div>
+        <h1>Visão geral do sistema</h1>
+        <p>Acompanhe clientes, receitas e pendências em uma tela mais clara e pronta para uso diário.</p>
+    </div>
+    <div class="dashboard-date-card d-none d-md-flex">
+        <span class="dashboard-date-label">Hoje</span>
+        <strong><?php echo date('d/m/Y'); ?></strong>
+        <span class="dashboard-date-subtitle">Resumo atualizado em tempo real</span>
     </div>
 </div>
 
-<div class="row">
+<div class="row dashboard-stats-row">
     <div class="col-md-3">
-        <div class="stat-card">
+        <div class="stat-card stat-card-primary">
             <div class="stat-icon bg-primary-soft">
                 <i class="fas fa-users"></i>
             </div>
@@ -35,7 +44,7 @@ $dadosGrafico = obterDadosGraficoFaturamento();
     </div>
     
     <div class="col-md-3">
-        <div class="stat-card">
+        <div class="stat-card stat-card-success">
             <div class="stat-icon bg-success-soft">
                 <i class="fas fa-hand-holding-usd"></i>
             </div>
@@ -47,7 +56,7 @@ $dadosGrafico = obterDadosGraficoFaturamento();
     </div>
     
     <div class="col-md-3">
-        <div class="stat-card">
+        <div class="stat-card stat-card-warning">
             <div class="stat-icon bg-warning-soft">
                 <i class="fas fa-coins"></i>
             </div>
@@ -59,7 +68,7 @@ $dadosGrafico = obterDadosGraficoFaturamento();
     </div>
     
     <div class="col-md-3">
-        <div class="stat-card">
+        <div class="stat-card stat-card-danger">
             <div class="stat-icon bg-danger-soft">
                 <i class="fas fa-exclamation-circle"></i>
             </div>
@@ -71,13 +80,16 @@ $dadosGrafico = obterDadosGraficoFaturamento();
     </div>
 </div>
 
-<div class="row mt-2">
+<div class="row dashboard-main-grid mt-2">
     <!-- Gráfico de Faturamento -->
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-chart-area"></i> Desempenho Financeiro (Últimos 6 meses)</span>
-                <small class="text-muted">Valores em <?php echo MOEDA_SIMBOLO; ?></small>
+        <div class="card dashboard-panel-card">
+            <div class="card-header dashboard-panel-header d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="dashboard-panel-eyebrow">Financeiro</div>
+                    <span><i class="fas fa-chart-area"></i> Desempenho dos últimos 6 meses</span>
+                </div>
+                <small class="text-muted dashboard-panel-meta">Valores em <?php echo MOEDA_SIMBOLO; ?></small>
             </div>
             <div class="card-body">
                 <canvas id="faturamentoChart" height="100"></canvas>
@@ -87,26 +99,27 @@ $dadosGrafico = obterDadosGraficoFaturamento();
 
     <!-- Ações Rápidas -->
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
+        <div class="card dashboard-panel-card">
+            <div class="card-header dashboard-panel-header">
+                <div class="dashboard-panel-eyebrow">Atalhos</div>
                 <i class="fas fa-bolt"></i> Ações Rápidas
             </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    <a href="/SystemContracts/clientes/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0">
+            <div class="card-body dashboard-actions-body">
+                <div class="list-group list-group-flush dashboard-actions-list">
+                    <a href="/SystemContracts/clientes/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0 dashboard-action-item">
                         <div class="icon-box bg-light text-primary mr-3"><i class="fas fa-user-plus"></i></div>
                         <span>Novo Cliente</span>
                     </a>
-                    <a href="/SystemContracts/contratos/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0">
+                    <a href="/SystemContracts/contratos/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0 dashboard-action-item">
                         <div class="icon-box bg-light text-accent mr-3"><i class="fas fa-file-signature"></i></div>
                         <span>Novo Contrato</span>
                     </a>
-                    <a href="/SystemContracts/pagamentos/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0">
+                    <a href="/SystemContracts/pagamentos/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0 dashboard-action-item">
                         <div class="icon-box bg-light text-success mr-3"><i class="fas fa-hand-holding-usd"></i></div>
                         <span>Registrar Pagamento</span>
                     </a>
                     <?php if ($_SESSION['user_perfil'] === 'admin'): ?>
-                    <a href="/SystemContracts/usuarios/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0">
+                    <a href="/SystemContracts/usuarios/adicionar.php" class="list-group-item list-group-item-action border-0 d-flex align-items-center px-0 dashboard-action-item">
                         <div class="icon-box bg-light text-warning mr-3"><i class="fas fa-user-shield"></i></div>
                         <span>Adicionar Operador</span>
                     </a>
@@ -119,13 +132,16 @@ $dadosGrafico = obterDadosGraficoFaturamento();
 
 <div class="row mt-4">
     <div class="col-md-6">
-        <div class="card dashboard-table-card">
+        <div class="card dashboard-table-card dashboard-panel-card">
             <div class="card-header">
-                <span><i class="fas fa-users"></i> Clientes Recentes</span>
-                <a href="/SystemContracts/clientes/listar.php" class="btn btn-sm btn-light">Ver todos</a>
+                <div>
+                    <div class="dashboard-panel-eyebrow">Cadastro</div>
+                    <span><i class="fas fa-users"></i> Clientes Recentes</span>
+                </div>
+                <a href="/SystemContracts/clientes/listar.php" class="btn btn-sm btn-light dashboard-link-btn">Ver todos</a>
             </div>
-            <div class="card-body">
-                <table class="table table-sm table-hover">
+            <div class="card-body dashboard-table-body">
+                <table class="table table-sm table-hover dashboard-table">
                     <thead>
                         <tr>
                             <th>Nome</th>
@@ -156,13 +172,16 @@ $dadosGrafico = obterDadosGraficoFaturamento();
     </div>
     
     <div class="col-md-6">
-        <div class="card dashboard-table-card">
+        <div class="card dashboard-table-card dashboard-panel-card">
             <div class="card-header">
-                <span><i class="fas fa-credit-card"></i> Pagamentos Pendentes</span>
-                <a href="/SystemContracts/pagamentos/listar.php" class="btn btn-sm btn-light">Ver todos</a>
+                <div>
+                    <div class="dashboard-panel-eyebrow">Cobrança</div>
+                    <span><i class="fas fa-credit-card"></i> Pagamentos Pendentes</span>
+                </div>
+                <a href="/SystemContracts/pagamentos/listar.php" class="btn btn-sm btn-light dashboard-link-btn">Ver todos</a>
             </div>
-            <div class="card-body">
-                <table class="table table-sm table-hover">
+            <div class="card-body dashboard-table-body">
+                <table class="table table-sm table-hover dashboard-table">
                     <thead>
                         <tr>
                             <th>Cliente</th>

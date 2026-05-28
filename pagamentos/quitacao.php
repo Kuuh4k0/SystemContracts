@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/quitacao_helpers.php';
 verificarAutenticacao();
 
+$body_class = 'quitacao-page';
 $titulo = 'Quitação de Pagamentos';
 $devedores = obterClientesComPendencias();
 ?>
